@@ -59,7 +59,7 @@ jobs:
       - name: Testler
         run: cargo test --workspace --verbose
       - name: E01 uyumluluk testleri
-        run: cargo test -p delilx-core --test e01_compat -- --test-threads=1 --verbose
+        run: cargo test -p delilx-core --test e01_compat -- --test-threads=1
 
   # Windows x64 derleme kontrolü
   windows-derleme:
