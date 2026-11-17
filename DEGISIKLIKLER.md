@@ -10,6 +10,16 @@ hazırlanmıştır; sürüm numaralandırması [Anlamsal Sürümleme](https://se
 
 ## [Yayınlanmadı]
 
+### Eklenecek
+
+- NTFS dosya sistemi dizin ağacı çözümleyicisi.
+- exFAT dosya sistemi dizin ağacı çözümleyicisi.
+- Kullanılan alan ediniminde dosya sistemi düzeyinde boş alan haritalama.
+
+---
+
+## [0.2.0] — 2026-11-17
+
 ### Eklendi — Yazılımsal Yazma Koruması
 
 - **Yazılımsal write blocker:** Harici donanımsal yazma engelleyici
@@ -32,11 +42,10 @@ hazırlanmıştır; sürüm numaralandırması [Anlamsal Sürümleme](https://se
 - Koruma, `Persist = FALSE` ile ayarlanır (cihaz çıkarılana veya sistem yeniden
   başlatılana kadar etkin); delil cihazı kalıcı olarak değiştirilmez.
 
-### Eklenecek
+### Bilinen Sınırlamalar
 
-- NTFS dosya sistemi dizin ağacı çözümleyicisi.
-- exFAT dosya sistemi dizin ağacı çözümleyicisi.
-- Kullanılan alan ediniminde dosya sistemi düzeyinde boş alan haritalama.
+- Yazılımsal yazma koruması yalnızca Windows üzerinde çalışır ve yönetici
+  hakları gerektirir.
 
 ---
 
@@ -132,5 +141,6 @@ DelilX'in ilk sürümü. Tamamen Rust ile geliştirilmiş, Windows 10/11 üzerin
 
 ---
 
-[Yayınlanmadı]: https://github.com/azmisahin-gov/DelilX/compare/v0.1.0...HEAD
+[Yayınlanmadı]: https://github.com/azmisahin-gov/DelilX/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/azmisahin-gov/DelilX/releases/tag/v0.2.0
 [0.1.0]: https://github.com/azmisahin-gov/DelilX/releases/tag/v0.1.0
