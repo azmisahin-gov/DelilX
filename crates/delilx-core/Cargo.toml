@@ -1,0 +1,35 @@
+[package]
+name = "delilx-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "DelilX çekirdek kütüphanesi: veri edinim, imaj, hash ve raporlama motoru"
+
+[dependencies]
+sha2.workspace = true
+sha1.workspace = true
+md-5.workspace = true
+digest.workspace = true
+hex.workspace = true
+flate2.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+chrono.workspace = true
+walkdir.workspace = true
+printpdf.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.59", features = [
+    "Win32_Foundation",
+    "Win32_Storage_FileSystem",
+    "Win32_System_IO",
+    "Win32_System_Ioctl",
+    "Win32_System_WindowsProgramming",
+    "Win32_Security",
+] }
+
+[dev-dependencies]
+anyhow.workspace = true
