@@ -1,0 +1,110 @@
+name: Yayın (Release)
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      surum:
+        description: "Sürüm etiketi (ör. v0.1.0)"
+        required: true
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # Önce bütün testler başarılı olmalı
+  dogrula:
+    name: Testler ve Kalite Kontrolleri
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Rust kurulumu
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Sistem bağımlılıkları
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ewf-tools libxkbcommon-dev libgl1-mesa-dev \
+            libwayland-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev \
+            libxrandr-dev
+      - name: Biçim denetimi
+        run: cargo fmt --all -- --check
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+      - name: Birim ve entegrasyon testleri
+        run: cargo test --workspace
+      - name: E01 uyumluluk testleri
+        run: cargo test -p delilx-core --test e01_compat -- --test-threads=1
+
+  # Windows x64 sürümünü derle ve paketle
+  windows-surum:
+    name: Windows x64 Sürümü
+    needs: dogrula
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Rust kurulumu
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Sürüm numarasını belirle
+        id: surum
+        shell: pwsh
+        run: |
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $v = "${{ github.event.inputs.surum }}"
+          } else {
+            $v = "${{ github.ref_name }}"
+          }
+          $v = $v -replace "^v", ""
+          echo "surum=$v" >> $env:GITHUB_OUTPUT
+
+      - name: Derleme (release)
+        run: cargo build --release --workspace
+
+      - name: Windows testlerini çalıştır
+        run: cargo test --workspace --release
+
+      - name: Paketi hazırla
+        shell: pwsh
+        run: |
+          $v = "${{ steps.surum.outputs.surum }}"
+          $pkg = "DelilX-$v-windows-x64"
+          New-Item -ItemType Directory -Path "dist\$pkg" -Force | Out-Null
+          Copy-Item "target\release\DelilX.exe" "dist\$pkg\"
+          Copy-Item "target\release\delilx.exe" "dist\$pkg\"
+          Copy-Item "README.md" "dist\$pkg\"
+          Copy-Item "KURULUM.md" "dist\$pkg\"
+          Copy-Item "KULLANIM_KILAVUZU.md" "dist\$pkg\"
+          Copy-Item "GUVENLIK.md" "dist\$pkg\"
+          Copy-Item "LICENSE" "dist\$pkg\"
+          Compress-Archive -Path "dist\$pkg\*" -DestinationPath "dist\$pkg.zip" -Force
+          echo "PKG=$pkg" >> $env:GITHUB_ENV
+
+      - name: SHA-256 kontrol dosyası oluştur
+        shell: pwsh
+        run: |
+          $pkg = "${{ env.PKG }}"
+          $hash = (Get-FileHash "dist\$pkg.zip" -Algorithm SHA256).Hash.ToLower()
+          "$hash  $pkg.zip" | Out-File -FilePath "dist\SHA256SUMS.txt" -Encoding ascii
+          Get-Content "dist\SHA256SUMS.txt"
+
+      - name: Yayın oluştur
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "DelilX ${{ steps.surum.outputs.surum }}"
+          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || format('v{0}', steps.surum.outputs.surum) }}
+          body_path: DEGISIKLIKLER.md
+          files: |
+            dist/${{ env.PKG }}.zip
+            dist/SHA256SUMS.txt
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

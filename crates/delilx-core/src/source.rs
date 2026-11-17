@@ -126,10 +126,11 @@ impl DeviceSource {
     pub fn open(path: &str) -> Result<Self> {
         use std::ffi::OsStr;
         use std::os::windows::ffi::OsStrExt;
+        use windows_sys::Win32::Foundation::GENERIC_READ;
         use windows_sys::Win32::Foundation::INVALID_HANDLE_VALUE;
         use windows_sys::Win32::Storage::FileSystem::{
             CreateFileW, FILE_FLAG_NO_BUFFERING, FILE_FLAG_SEQUENTIAL_SCAN, FILE_SHARE_READ,
-            FILE_SHARE_WRITE, GENERIC_READ, OPEN_EXISTING,
+            FILE_SHARE_WRITE, OPEN_EXISTING,
         };
 
         let wide: Vec<u16> = OsStr::new(path)
@@ -170,7 +171,8 @@ impl DeviceSource {
 
 #[cfg(windows)]
 fn query_sector_size(handle: windows_sys::Win32::Foundation::HANDLE) -> Option<u32> {
-    let mut info: windows_sys::Win32::System::IO::DISK_GEOMETRY_EX = unsafe { std::mem::zeroed() };
+    let mut info: windows_sys::Win32::System::Ioctl::DISK_GEOMETRY_EX =
+        unsafe { std::mem::zeroed() };
     let mut returned: u32 = 0;
     let ok = unsafe {
         windows_sys::Win32::System::IO::DeviceIoControl(
@@ -179,7 +181,7 @@ fn query_sector_size(handle: windows_sys::Win32::Foundation::HANDLE) -> Option<u
             std::ptr::null_mut(),
             0,
             &mut info as *mut _ as *mut _,
-            std::mem::size_of::<windows_sys::Win32::System::IO::DISK_GEOMETRY_EX>() as u32,
+            std::mem::size_of::<windows_sys::Win32::System::Ioctl::DISK_GEOMETRY_EX>() as u32,
             &mut returned,
             std::ptr::null_mut(),
         )
@@ -193,7 +195,7 @@ fn query_sector_size(handle: windows_sys::Win32::Foundation::HANDLE) -> Option<u
 
 #[cfg(windows)]
 fn query_device_size(handle: windows_sys::Win32::Foundation::HANDLE) -> Option<u64> {
-    let mut length: windows_sys::Win32::System::IO::GET_LENGTH_INFORMATION =
+    let mut length: windows_sys::Win32::System::Ioctl::GET_LENGTH_INFORMATION =
         unsafe { std::mem::zeroed() };
     let mut returned: u32 = 0;
     let ok = unsafe {
@@ -203,7 +205,7 @@ fn query_device_size(handle: windows_sys::Win32::Foundation::HANDLE) -> Option<u
             std::ptr::null_mut(),
             0,
             &mut length as *mut _ as *mut _,
-            std::mem::size_of::<windows_sys::Win32::System::IO::GET_LENGTH_INFORMATION>() as u32,
+            std::mem::size_of::<windows_sys::Win32::System::Ioctl::GET_LENGTH_INFORMATION>() as u32,
             &mut returned,
             std::ptr::null_mut(),
         )

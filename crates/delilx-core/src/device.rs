@@ -176,26 +176,10 @@ pub fn validate_source_target(
 /// Bir dosya yolunun hangi fiziksel sürücüye ait olduğunu bulur.
 #[cfg(windows)]
 pub fn device_for_path(path: &std::path::Path) -> Option<u32> {
-    use std::ffi::OsStr;
-    use std::os::windows::ffi::OsStrExt;
-    let mut wide: Vec<u16> = OsStr::new(path).encode_wide().collect();
-    wide.push(0);
-    let mut drive_number: u32 = 0;
-    let ok = unsafe {
-        windows_sys::Win32::Storage::FileSystem::GetDiskFreeSpaceExW(
-            wide.as_ptr(),
-            std::ptr::null_mut(),
-            std::ptr::null_mut(),
-            std::ptr::null_mut(),
-        )
-    };
-    // GetDiskFreeSpaceExW ile sürücü numarası alınmaz; ayrı bir API gerekir.
-    // Bu yüzden yolun kök harfinden fiziksel sürücü eşlemesi yapılır.
-    let _ = ok;
+    // Yolun kök harfinden fiziksel sürücü eşlemesi yapılır.
     if let Some(c) = path.to_string_lossy().chars().next() {
         if c.is_ascii_alphabetic() {
-            drive_number = (c.to_ascii_uppercase() as u32) - ('A' as u32);
-            return physical_drive_for_letter(c).map(|_| drive_number);
+            return physical_drive_for_letter(c);
         }
     }
     None
@@ -214,10 +198,7 @@ fn physical_drive_for_letter(letter: char) -> Option<u32> {
     let vol_path = format!("\\\\.\\{}:", letter.to_ascii_uppercase());
     let wide: Vec<u16> = vol_path.encode_utf16().chain(std::iter::once(0)).collect();
     // Bu işlem için IOCTL_STORAGE_GET_DEVICE_NUMBER kullanılır.
-    match query_device_number(&wide) {
-        Some(n) => Some(n),
-        None => None,
-    }
+    query_device_number(&wide)
 }
 
 /// IOCTL_STORAGE_GET_DEVICE_NUMBER sorgusu ile cihaz numarasını alır.
@@ -244,18 +225,8 @@ fn query_device_number(wide_path: &[u16]) -> Option<u32> {
         return None;
     }
 
-    #[repr(C)]
-    struct StorageDeviceNumber {
-        device_type: u32,
-        device_number: u32,
-        partition_number: u32,
-    }
-
-    let mut sdn = StorageDeviceNumber {
-        device_type: 0,
-        device_number: 0,
-        partition_number: 0,
-    };
+    let mut sdn: windows_sys::Win32::System::Ioctl::STORAGE_DEVICE_NUMBER =
+        unsafe { std::mem::zeroed() };
     let mut returned: u32 = 0;
     let ok = unsafe {
         windows_sys::Win32::System::IO::DeviceIoControl(
@@ -264,7 +235,7 @@ fn query_device_number(wide_path: &[u16]) -> Option<u32> {
             std::ptr::null_mut(),
             0,
             &mut sdn as *mut _ as *mut _,
-            std::mem::size_of::<StorageDeviceNumber>() as u32,
+            std::mem::size_of::<windows_sys::Win32::System::Ioctl::STORAGE_DEVICE_NUMBER>() as u32,
             &mut returned,
             std::ptr::null_mut(),
         )
@@ -275,7 +246,7 @@ fn query_device_number(wide_path: &[u16]) -> Option<u32> {
     if ok == 0 {
         None
     } else {
-        Some(sdn.device_number)
+        Some(sdn.DeviceNumber)
     }
 }
 
@@ -297,8 +268,11 @@ mod windows_impl {
     use std::ffi::OsStr;
     use std::os::windows::ffi::OsStrExt;
     use windows_sys::Win32::Storage::FileSystem::{
-        GetDriveTypeW, GetLogicalDrives, GetVolumeInformationW, DRIVE_CDROM, DRIVE_FIXED,
-        DRIVE_NO_ROOT_DIR, DRIVE_RAMDISK, DRIVE_REMOTE, DRIVE_REMOVABLE, DRIVE_UNKNOWN,
+        GetDriveTypeW, GetLogicalDrives, GetVolumeInformationW,
+    };
+    use windows_sys::Win32::System::WindowsProgramming::{
+        DRIVE_CDROM, DRIVE_FIXED, DRIVE_NO_ROOT_DIR, DRIVE_RAMDISK, DRIVE_REMOTE, DRIVE_REMOVABLE,
+        DRIVE_UNKNOWN,
     };
 
     pub fn detect_devices() -> crate::error::Result<Vec<Device>> {
@@ -318,14 +292,14 @@ mod windows_impl {
             if drive_type == DRIVE_NO_ROOT_DIR || drive_type == DRIVE_UNKNOWN {
                 continue;
             }
-            if let Some(dev) = build_device(letter, &root, &wide, drive_type) {
+            if let Some(dev) = build_device(letter, &wide, drive_type) {
                 devices.push(dev);
             }
         }
         Ok(devices)
     }
 
-    fn build_device(letter: char, root: &str, wide: &[u16], drive_type: u32) -> Option<Device> {
+    fn build_device(letter: char, wide: &[u16], drive_type: u32) -> Option<Device> {
         let kind = match drive_type {
             DRIVE_REMOVABLE => DeviceKind::Removable,
             DRIVE_FIXED => DeviceKind::Fixed,
@@ -546,7 +520,7 @@ mod windows_impl {
         if handle == windows_sys::Win32::Foundation::INVALID_HANDLE_VALUE {
             return None;
         }
-        let mut info: windows_sys::Win32::System::IO::DISK_GEOMETRY_EX =
+        let mut info: windows_sys::Win32::System::Ioctl::DISK_GEOMETRY_EX =
             unsafe { std::mem::zeroed() };
         let mut returned: u32 = 0;
         let ok = unsafe {
@@ -556,7 +530,7 @@ mod windows_impl {
                 std::ptr::null_mut(),
                 0,
                 &mut info as *mut _ as *mut _,
-                std::mem::size_of::<windows_sys::Win32::System::IO::DISK_GEOMETRY_EX>() as u32,
+                std::mem::size_of::<windows_sys::Win32::System::Ioctl::DISK_GEOMETRY_EX>() as u32,
                 &mut returned,
                 std::ptr::null_mut(),
             )
