@@ -56,7 +56,7 @@ cargo build --release
 .\target\release\DelilX.exe
 
 # Komut satırı aracını çalıştırın
-.\target\release\delilx.exe hakkinda
+.\target\release\delilx-cli.exe hakkinda
 ```
 
 ### Testleri Çalıştırma

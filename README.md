@@ -129,23 +129,23 @@ cargo run --release -p delilx-gui
 
 ```powershell
 # Hakkında
-delilx hakkinda
+delilx-cli hakkinda
 
 # Cihazları listele
-delilx cihazlar
+delilx-cli cihazlar
 
 # RAW imaj al
-delilx raw --kaynak "\\.\PhysicalDrive2" --hedef "D:\delil\usb.dd"
+delilx-cli raw --kaynak "\\.\PhysicalDrive2" --hedef "D:\delil\usb.dd"
 
 # E01 imaj al
-delilx e01 --kaynak "\\.\PhysicalDrive2" --hedef "D:\delil\usb.E01" `
+delilx-cli e01 --kaynak "\\.\PhysicalDrive2" --hedef "D:\delil\usb.E01" `
            --delil-no "DELIL-1" --uzman "Ad Soyad"
 
 # İmajı incele
-delilx incele --imaj "D:\delil\usb.E01"
+delilx-cli incele --imaj "D:\delil\usb.E01"
 
 # Hash doğrula
-delilx dogrula --imaj "D:\delil\usb.dd" --sha256 "<beklenen-sha256>"
+delilx-cli dogrula --imaj "D:\delil\usb.dd" --sha256 "<beklenen-sha256>"
 ```
 
 ---

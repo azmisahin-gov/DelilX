@@ -217,40 +217,40 @@ Rapor şu bilgileri içerir:
 
 ## 12. Komut Satırı Aracı
 
-`delilx.exe` komut satırı aracı, grafik arayüzün yaptığı işlemleri komut
+`delilx-cli.exe` komut satırı aracı, grafik arayüzün yaptığı işlemleri komut
 satırından yapmaya olanak tanır.
 
 ### Komutlar
 
 ```text
-delilx hakkinda                              # Sürüm ve slogan
-delilx cihazlar                              # Depolama aygıtlarını listeler
-delilx raw     --kaynak <YOL> --hedef <YOL>  # RAW imaj oluşturur
-delilx e01     --kaynak <YOL> --hedef <YOL>  # E01 imaj oluşturur
-delilx mantiksal --kaynak <DİZİN> --hedef <DİZİN>  # Mantıksal edinim
-delilx incele  --imaj <YOL>                  # İmajı inceler
-delilx dogrula --imaj <YOL> [--sha256 <DEĞER>] [--sha512 <DEĞER>]
+delilx-cli hakkinda                              # Sürüm ve slogan
+delilx-cli cihazlar                              # Depolama aygıtlarını listeler
+delilx-cli raw     --kaynak <YOL> --hedef <YOL>  # RAW imaj oluşturur
+delilx-cli e01     --kaynak <YOL> --hedef <YOL>  # E01 imaj oluşturur
+delilx-cli mantiksal --kaynak <DİZİN> --hedef <DİZİN>  # Mantıksal edinim
+delilx-cli incele  --imaj <YOL>                  # İmajı inceler
+delilx-cli dogrula --imaj <YOL> [--sha256 <DEĞER>] [--sha512 <DEĞER>]
 ```
 
 ### Örnekler
 
 ```powershell
 # RAW imaj al
-delilx raw --kaynak "\\.\PhysicalDrive2" --hedef "D:\delil\usb.dd"
+delilx-cli raw --kaynak "\\.\PhysicalDrive2" --hedef "D:\delil\usb.dd"
 
 # E01 imaj al (delil bilgileri ile)
-delilx e01 --kaynak "\\.\PhysicalDrive2" --hedef "D:\delil\usb.E01" `
+delilx-cli e01 --kaynak "\\.\PhysicalDrive2" --hedef "D:\delil\usb.E01" `
            --delil-no "DELIL-2026-001" --vaka-no "VAKA-2026-042" `
            --uzman "Ad Soyad" --sikistirma eniyi
 
 # Mantıksal edinim
-delilx mantiksal --kaynak "C:\Users\kullanici\Belgeler" --hedef "D:\delil\belgeler"
+delilx-cli mantiksal --kaynak "C:\Users\kullanici\Belgeler" --hedef "D:\delil\belgeler"
 
 # İmajı incele
-delilx incele --imaj "D:\delil\usb.E01"
+delilx-cli incele --imaj "D:\delil\usb.E01"
 
 # Hash doğrula
-delilx dogrula --imaj "D:\delil\usb.dd" --sha256 "e3b0c44298fc1c14..."
+delilx-cli dogrula --imaj "D:\delil\usb.dd" --sha256 "e3b0c44298fc1c14..."
 ```
 
 Bütün çıktılar Türkçedir.

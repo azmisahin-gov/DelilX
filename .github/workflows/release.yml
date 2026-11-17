@@ -78,7 +78,7 @@ jobs:
           $pkg = "DelilX-$v-windows-x64"
           New-Item -ItemType Directory -Path "dist\$pkg" -Force | Out-Null
           Copy-Item "target\release\DelilX.exe" "dist\$pkg\"
-          Copy-Item "target\release\delilx.exe" "dist\$pkg\"
+          Copy-Item "target\release\delilx-cli.exe" "dist\$pkg\"
           Copy-Item "README.md" "dist\$pkg\"
           Copy-Item "KURULUM.md" "dist\$pkg\"
           Copy-Item "KULLANIM_KILAVUZU.md" "dist\$pkg\"
