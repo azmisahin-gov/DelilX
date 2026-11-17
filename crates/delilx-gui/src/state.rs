@@ -26,6 +26,8 @@ pub enum Screen {
     Selective,
     /// Kullanılan alan edinimi.
     UsedSpace,
+    /// Yazma koruması (yazılımsal write blocker).
+    WriteProtect,
     /// İmaj inceleme.
     Inspect,
     /// Hash doğrulama.
@@ -48,6 +50,7 @@ impl Screen {
             Screen::Logical => "Mantıksal Edinim",
             Screen::Selective => "Seçmeli Edinim",
             Screen::UsedSpace => "Kullanılan Alan",
+            Screen::WriteProtect => "Yazma Koruması",
             Screen::Inspect => "İmaj İnceleme",
             Screen::Verify => "Hash Doğrulama",
             Screen::Reports => "Delil Raporları",
@@ -66,6 +69,7 @@ impl Screen {
             Screen::Logical => "📁",
             Screen::Selective => "☑",
             Screen::UsedSpace => "🧩",
+            Screen::WriteProtect => "🔒",
             Screen::Inspect => "🔍",
             Screen::Verify => "✓",
             Screen::Reports => "📄",
@@ -164,6 +168,8 @@ pub struct AppState {
     pub report: ReportForm,
     /// RAW okuma hatası politikası (0 sıfırla, 1 durdur).
     pub raw_error_policy: u8,
+    /// Yazma koruması ekranı durumu.
+    pub write_protect: WriteProtectState,
     /// Son edinim özeti (rapor için).
     pub last_report: Option<delilx_core::report::EvidenceReport>,
 }
@@ -247,6 +253,19 @@ pub struct ReportForm {
     pub description: String,
 }
 
+/// Yazma koruması ekranı durumu.
+#[derive(Debug, Clone, Default)]
+pub struct WriteProtectState {
+    /// Seçili cihaz yolu (fiziksel disk veya birim).
+    pub device_path: String,
+    /// Son sorgu raporu.
+    pub report: Option<delilx_core::writeblock::WriteProtectionReport>,
+    /// Son işlem mesajı.
+    pub message: Option<String>,
+    /// Son işlem başarılı mı?
+    pub success: bool,
+}
+
 impl AppState {
     /// Yeni uygulama durumu oluşturur.
     pub fn new() -> Self {
@@ -270,6 +289,7 @@ impl AppState {
             report_paths: Vec::new(),
             report: ReportForm::default(),
             raw_error_policy: 0,
+            write_protect: WriteProtectState::default(),
             last_report: None,
             settings,
         };

@@ -12,6 +12,7 @@ pub mod settings;
 pub mod usedspace;
 pub mod verify;
 pub mod widgets;
+pub mod writeprotect;
 
 use crate::state::AppState;
 use std::sync::{Arc, Mutex};

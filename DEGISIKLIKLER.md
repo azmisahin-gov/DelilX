@@ -10,6 +10,28 @@ hazırlanmıştır; sürüm numaralandırması [Anlamsal Sürümleme](https://se
 
 ## [Yayınlanmadı]
 
+### Eklendi — Yazılımsal Yazma Koruması
+
+- **Yazılımsal write blocker:** Harici donanımsal yazma engelleyici
+  kullanmadan, yalnızca yazılım üzerinden USB bellek veya SD kartı yazmaya
+  karşı korur (Windows disk salt-okunur özniteliği:
+  `IOCTL_DISK_SET_DISK_ATTRIBUTES` + `DISK_ATTRIBUTE_READ_ONLY`).
+- **Güvenlik → Yazma Koruması** arayüz ekranı: kullanıcı aygıtı seçer,
+  korumayı etkinleştirir/kaldırır ve mevcut durumu görür.
+- Koruma **etkinleştirildikten sonra doğrulanır**: salt-okunur özniteliği
+  yeniden okunur ve cihaz yazma erişimiyle açılamıyorsa koruma "doğrulandı"
+  sayılır. Koruma sağlanamazsa kullanıcı açıkça bilgilendirilir.
+- Durum rozetleri: yazmaya kapalı (yeşil), yazılabilir (turuncu), doğrulanamadı
+  (kırmızı).
+- Donanımsal ve yazılımsal koruma **ayrı** değerlendirilir; yazılımsal korumanın
+  donanımsal ile eşdeğer olmadığı arayüzde ve dokümantasyonda belirtilir.
+- Cihaz algılama (`Cihazları Algıla`), gerçek koruma durumunu (yazılımsal/
+  donanımsal/yok) gösterecek şekilde güncellendi.
+- Sistem diski güvenlik nedeniyle korunamaz.
+- **CLI:** `koruma durum`, `koruma etkinlestir`, `koruma kaldir` komutları.
+- Koruma, `Persist = FALSE` ile ayarlanır (cihaz çıkarılana veya sistem yeniden
+  başlatılana kadar etkin); delil cihazı kalıcı olarak değiştirilmez.
+
 ### Eklenecek
 
 - NTFS dosya sistemi dizin ağacı çözümleyicisi.

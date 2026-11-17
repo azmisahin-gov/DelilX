@@ -49,6 +49,7 @@ pub fn draw(ui: &mut egui::Ui, state: &State) {
     ui.horizontal_wrapped(|ui| {
         for (screen, desc) in [
             (Screen::Devices, "USB ve SD kartları algıla"),
+            (Screen::WriteProtect, "Yazılımsal yazma koruması uygula"),
             (Screen::Raw, "RAW/DD tam disk imajı al"),
             (Screen::E01, "EnCase uyumlu E01 imajı oluştur"),
             (Screen::Logical, "Mevcut dosyaları edin"),

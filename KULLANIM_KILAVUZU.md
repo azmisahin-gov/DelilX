@@ -14,11 +14,12 @@ adım adım açıklar.
 5. [Mantıksal Edinim](#5-mantıksal-edinim)
 6. [Seçmeli Edinim](#6-seçmeli-edinim)
 7. [Kullanılan Alan Edinimi](#7-kullanılan-alan-edinimi)
-8. [İmaj İnceleme](#8-imaj-inceleme)
-9. [Hash Doğrulama](#9-hash-doğrulama)
-10. [Delil Raporları](#10-delil-raporları)
-11. [Ayarlar](#11-ayarlar)
-12. [Komut Satırı Aracı](#12-komut-satırı-aracı)
+8. [Yazma Koruması](#8-yazma-koruması)
+9. [İmaj İnceleme](#9-imaj-inceleme)
+10. [Hash Doğrulama](#10-hash-doğrulama)
+11. [Delil Raporları](#11-delil-raporları)
+12. [Ayarlar](#12-ayarlar)
+13. [Komut Satırı Aracı](#13-komut-satırı-aracı)
 
 ---
 
@@ -148,7 +149,37 @@ alan gösterilir.
 
 ---
 
-## 8. İmaj İnceleme
+## 8. Yazma Koruması
+
+Harici bir donanımsal yazma engelleyici kullanmadan, **yalnızca yazılım
+üzerinden** USB bellek veya SD kartı yazmaya karşı korur.
+
+1. Sol menüden **Güvenlik → Yazma Koruması** ekranını açın.
+2. **Aygıt seçin** listesinden korumak istediğiniz belleği seçin. Gerekirse
+   aygıt yolunu elle girebilirsiniz (`\\.\PhysicalDrive2`).
+3. **Durumu Sorgula** düğmesine basarak mevcut koruma durumunu görün.
+4. **Yazma Korumasını Etkinleştir** düğmesine basın. DelilX korumayı etkinleştirir
+   ve gerçekten etkin olduğunu doğrular.
+5. Ekranda koruma durumu renkli olarak gösterilir:
+   - 🔒 **Yeşil:** Yazmaya kapalı — koruma etkin ve doğrulandı.
+   - 🔓 **Turuncu:** Yazılabilir — koruma yok.
+   - ⚠ **Kırmızı:** Koruma doğrulanamadı.
+   - ❓ **Kırmızı:** Durum belirlenemedi.
+6. Korumayı kaldırmak için **Yazma Korumasını Kaldır** düğmesine basın.
+
+> **Uyarı:** Bu koruma **yazılımsaldır** ve donanımsal yazma engelleyiciyle
+> **eşdeğer değildir.** Donanımsal engelleyici işletim sisteminden bağımsız
+> çalışır; yazılımsal koruma ise Windows çekirdeği ve sürücü yığınına dayanır.
+> Yüksek güvenilirlik gerektiren adli işlemlerde donanımsal yazma engelleyici
+> kullanılmalıdır.
+
+> **Not:** Koruma, cihaz çıkarılana veya sistem yeniden başlatılana kadar
+> etkindir. Sistem diski güvenlik nedeniyle korunamaz. Bu özellik yönetici
+> hakları gerektirir.
+
+---
+
+## 9. İmaj İnceleme
 
 Alınan RAW ve E01 imajları açar.
 
@@ -166,7 +197,7 @@ Sonuçta şunlar gösterilir:
 
 ---
 
-## 9. Hash Doğrulama
+## 10. Hash Doğrulama
 
 Bir imaj veya dosyanın hash değerlerini yeniden hesaplayarak karşılaştırır.
 
@@ -182,7 +213,7 @@ Sonuç **BAŞARILI** veya **BAŞARISIZ** olarak gösterilir.
 
 ---
 
-## 10. Delil Raporları
+## 11. Delil Raporları
 
 Edinim tamamlandıktan sonra Türkçe rapor oluşturur.
 
@@ -204,7 +235,7 @@ Rapor şu bilgileri içerir:
 
 ---
 
-## 11. Ayarlar
+## 12. Ayarlar
 
 - **Varsayılan delil bilgileri:** Delil numarası, vaka numarası, incelemeyi yapan.
 - **Varsayılan sektör boyutu:** 512 veya 4096 bayt.
@@ -215,7 +246,7 @@ Rapor şu bilgileri içerir:
 
 ---
 
-## 12. Komut Satırı Aracı
+## 13. Komut Satırı Aracı
 
 `delilx-cli.exe` komut satırı aracı, grafik arayüzün yaptığı işlemleri komut
 satırından yapmaya olanak tanır.
@@ -230,6 +261,9 @@ delilx-cli e01     --kaynak <YOL> --hedef <YOL>  # E01 imaj oluşturur
 delilx-cli mantiksal --kaynak <DİZİN> --hedef <DİZİN>  # Mantıksal edinim
 delilx-cli incele  --imaj <YOL>                  # İmajı inceler
 delilx-cli dogrula --imaj <YOL> [--sha256 <DEĞER>] [--sha512 <DEĞER>]
+delilx-cli koruma durum       --aygit <AYGIT>    # Yazma koruması durumu
+delilx-cli koruma etkinlestir --aygit <AYGIT>    # Korumayı etkinleştir + doğrula
+delilx-cli koruma kaldir      --aygit <AYGIT>    # Korumayı kaldır
 ```
 
 ### Örnekler
@@ -251,6 +285,15 @@ delilx-cli incele --imaj "D:\delil\usb.E01"
 
 # Hash doğrula
 delilx-cli dogrula --imaj "D:\delil\usb.dd" --sha256 "e3b0c44298fc1c14..."
+
+# Yazma koruması durumunu sorgula
+delilx-cli koruma durum --aygit "\\.\PhysicalDrive2"
+
+# Yazılımsal yazma korumasını etkinleştir ve doğrula
+delilx-cli koruma etkinlestir --aygit "\\.\PhysicalDrive2"
+
+# Yazma korumasını kaldır
+delilx-cli koruma kaldir --aygit "\\.\PhysicalDrive2"
 ```
 
 Bütün çıktılar Türkçedir.

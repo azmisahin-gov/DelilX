@@ -23,6 +23,30 @@ Uygulama internet bağlantısı olmadan çalışır.
 | **Seçmeli Edinim** | Kullanıcının seçtiği dosya ve klasörleri alır, dosya envanteri oluşturur. |
 | **Kullanılan Alan** | Yalnızca kullanılan sektörleri alır. Boş alan dışarıda bırakılır. |
 
+### Yazılımsal Yazma Koruması (Write Blocker)
+
+Harici bir donanımsal yazma engelleyici kullanmadan, **yalnızca yazılım
+üzerinden** USB bellek veya SD kartı yazmaya karşı korur.
+
+- Kullanıcı uygulama içinden ilgili belleği seçer.
+- Yazma korumasını etkinleştirir veya kaldırır.
+- Mevcut koruma durumunu görür.
+- **Korumanın gerçekten etkin olup olmadığı doğrulanır ve açıkça gösterilir.**
+- Koruma sağlanamazsa kullanıcı bilgilendirilir.
+
+Windows disk salt-okunur özniteliği kullanılır
+(`IOCTL_DISK_SET_DISK_ATTRIBUTES` + `DISK_ATTRIBUTE_READ_ONLY`). Koruma, cihaz
+çıkarılana veya sistem yeniden başlatılana kadar etkindir; bu, delil cihazının
+kalıcı olarak değiştirilmemesi içindir.
+
+> **Önemli:** Bu koruma **yazılımsaldır** ve donanımsal yazma engelleyiciyle
+> **eşdeğer değildir.** Donanımsal engelleyici işletim sisteminden bağımsız
+> çalışır; yazılımsal koruma ise Windows çekirdeği ve sürücü yığınına dayanır.
+> Yüksek güvenilirlik gerektiren adli işlemlerde donanımsal yazma engelleyici
+> kullanılmalıdır. DelilX bu farkı arayüzde ve raporda açıkça belirtir.
+
+Sistem diski güvenlik nedeniyle korunamaz.
+
 ### Kaynak Bellek Koruma (En Önemli Güvenlik Gereksinimi)
 
 - USB bellekler ve SD kartlar otomatik algılanır.
@@ -70,6 +94,8 @@ Ana ekranda şu bölümler bulunur:
   - Mantıksal Edinim
   - Seçmeli Edinim
   - Kullanılan Alan
+- Güvenlik
+  - Yazma Koruması
 - İmaj İnceleme
 - Hash Doğrulama
 - Delil Raporları
@@ -146,6 +172,15 @@ delilx-cli incele --imaj "D:\delil\usb.E01"
 
 # Hash doğrula
 delilx-cli dogrula --imaj "D:\delil\usb.dd" --sha256 "<beklenen-sha256>"
+
+# Yazma koruması durumunu sorgula
+delilx-cli koruma durum --aygit "\\.\PhysicalDrive2"
+
+# Yazılımsal yazma korumasını etkinleştir ve doğrula
+delilx-cli koruma etkinlestir --aygit "\\.\PhysicalDrive2"
+
+# Yazma korumasını kaldır
+delilx-cli koruma kaldir --aygit "\\.\PhysicalDrive2"
 ```
 
 ---

@@ -428,77 +428,40 @@ mod windows_impl {
     }
 
     /// Yazma koruması durumunu sorgular.
+    ///
+    /// Fiziksel disk yolu varsa onu, yoksa birim yolunu kullanır. Gerçek
+    /// durum `writeblock::query` ile belirlenir: Windows salt-okunur özniteliği
+    /// (yazılımsal) ile fiziksel yazma engeli (donanımsal) ayrı değerlendirilir.
     fn check_write_protection(
         vol_wide: &[u16],
         physical_number: Option<u32>,
     ) -> (WriteProtection, String) {
-        use windows_sys::Win32::Storage::FileSystem::{
-            CreateFileW, FILE_SHARE_READ, FILE_SHARE_WRITE, OPEN_EXISTING,
+        // Sorgu için fiziksel disk yolu tercih edilir.
+        let target = match physical_number {
+            Some(n) => format!("\\\\.\\PhysicalDrive{n}"),
+            None => String::from_utf16_lossy(
+                &vol_wide[..vol_wide
+                    .iter()
+                    .position(|&c| c == 0)
+                    .unwrap_or(vol_wide.len())],
+            ),
         };
-        use windows_sys::Win32::System::Ioctl::IOCTL_DISK_IS_WRITABLE;
 
-        let handle = unsafe {
-            CreateFileW(
-                vol_wide.as_ptr(),
-                0,
-                FILE_SHARE_READ | FILE_SHARE_WRITE,
-                std::ptr::null_mut(),
-                OPEN_EXISTING,
-                0,
-                std::ptr::null_mut(),
-            )
-        };
-        if handle == windows_sys::Win32::Foundation::INVALID_HANDLE_VALUE {
-            return (
-                WriteProtection::Unknown,
-                "Aygıt sorgulanamadı; yazma koruması doğrulanamadı.".to_string(),
-            );
-        }
-
-        let mut bytes_returned: u32 = 0;
-        // IOCTL_DISK_IS_WRITABLE başarısız olursa disk yazmaya kapalıdır.
-        let ok = unsafe {
-            windows_sys::Win32::System::IO::DeviceIoControl(
-                handle,
-                IOCTL_DISK_IS_WRITABLE,
-                std::ptr::null_mut(),
-                0,
-                std::ptr::null_mut(),
-                0,
-                &mut bytes_returned,
-                std::ptr::null_mut(),
-            )
-        };
-        let last_error = unsafe { windows_sys::Win32::Foundation::GetLastError() };
-        unsafe {
-            windows_sys::Win32::Foundation::CloseHandle(handle);
-        }
-
-        if ok == 0 {
-            // ERROR_WRITE_PROTECT = 19
-            if last_error == 19 {
-                return (
-                    WriteProtection::Hardware,
-                    "Aygıt yazmaya kapalı olarak bildirildi (yazma engelleyici veya \
-                     salt okunur anahtar). Donanımsal yazma koruması olarak değerlendirildi."
-                        .to_string(),
-                );
+        match crate::writeblock::query(&target) {
+            Ok(report) => {
+                let wp = match report.source {
+                    crate::writeblock::ProtectionSource::Hardware => WriteProtection::Hardware,
+                    crate::writeblock::ProtectionSource::Software => WriteProtection::Software,
+                    crate::writeblock::ProtectionSource::None => WriteProtection::None,
+                    crate::writeblock::ProtectionSource::Unknown => WriteProtection::Unknown,
+                };
+                (wp, report.detail)
             }
-            return (
+            Err(e) => (
                 WriteProtection::Unknown,
-                format!("Yazma koruması sorgusu başarısız (kod {last_error})."),
-            );
+                format!("Yazma koruması sorgulanamadı: {e}"),
+            ),
         }
-
-        // Disk yazılabilir görünüyor. Yazılımsal koruma olabilir; fiziksel diski
-        // de kontrol edelim.
-        let _ = physical_number;
-        (
-            WriteProtection::None,
-            "Aygıt yazılabilir görünüyor. Kaynak olarak kullanmadan önce donanımsal \
-             yazma engelleyici bağlayın."
-                .to_string(),
-        )
     }
 
     /// Sektör boyutunu sorgular.

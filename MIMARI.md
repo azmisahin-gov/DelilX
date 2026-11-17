@@ -51,6 +51,7 @@ grafik arayüz hem de komut satırı tarafından kullanılır ve test edilir.
 | `report` | Türkçe rapor veri yapısı (PDF/JSON/CSV) |
 | `report_pdf` | PDF üretimi (DejaVu Sans gömülü) |
 | `acquisition` | Edinim yöntemi tanımları, ön kontroller |
+| `writeblock` | Yazılımsal yazma koruması (write blocker) |
 
 ### 2.2 Katmanlar
 
@@ -278,3 +279,51 @@ doğrulanabilirlik ve adli bilişim camiasında kabul görmüş biçim sağlar.
 **Neden hash ve metadata ayrı?** Hash eşleşmesi veri bütünlüğünü gösterir;
 metadata bütünlüğü (zaman damgaları, öznitelikler) ayrı bir bütünlük boyutudur
 ve ayrı değerlendirilmelidir.
+
+---
+
+## 11. Yazılımsal Yazma Koruması
+
+`writeblock` modülü, Windows disk salt-okunur özniteliğini kullanarak harici
+donanım gerektirmeden yazma koruması sağlar.
+
+### 11.1 Kullanılan API
+
+| İşlem | IOCTL |
+|---|---|
+| Salt-okunur özniteliğini oku | `IOCTL_DISK_GET_DISK_ATTRIBUTES` |
+| Salt-okunur özniteliğini ayarla | `IOCTL_DISK_SET_DISK_ATTRIBUTES` |
+| Yazma engelini denetle | `IOCTL_DISK_IS_WRITABLE` |
+
+`SET_DISK_ATTRIBUTES` yapısı `DISK_ATTRIBUTE_READ_ONLY` bayrağı ve
+`AttributesMask` ile ayarlanır. `Persist = FALSE` seçilir; koruma yalnızca
+çalışma zamanında geçerlidir ve delil cihazını kalıcı olarak değiştirmez.
+
+### 11.2 Durum Sınıflandırması
+
+```
+salt-okunur özniteliği = true                    -> Yazılımsal (DelilX)
+salt-okunur = false  VE  yazılabilir = false     -> Donanımsal
+salt-okunur = false  VE  yazılabilir = true      -> Yok (yazılabilir)
+sorgu başarısız                                  -> Doğrulanamadı
+```
+
+Bu ayrım, yazılımsal korumanın donanımsal ile karıştırılmamasını garanti eder.
+
+### 11.3 Doğrulama
+
+Koruma etkinleştirildikten sonra:
+
+1. Salt-okunur özniteliği yeniden okunur.
+2. Cihaz `GENERIC_READ | GENERIC_WRITE` ile açılmaya çalışılır; başarısız
+   olması beklenir.
+
+Her iki kontrol de geçerse koruma "doğrulandı" sayılır. Aksi hâlde kullanıcı
+açıkça uyarılır.
+
+### 11.4 Güvenlik Sınırları
+
+- Sistem diski korunamaz (`is_system_disk` denetimi).
+- Yönetici hakları gerekir.
+- Yazılımsal koruma, donanımsal engelleyiciyle eşdeğer **değildir** ve bu fark
+  arayüzde, CLI çıktısında ve dokümantasyonda açıkça belirtilir.

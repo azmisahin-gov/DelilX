@@ -114,7 +114,7 @@ impl DelilXApp {
         let current = self.state.lock().unwrap().current;
 
         // Bölümler
-        let groups: [(&str, &[Screen]); 4] = [
+        let groups: [(&str, &[Screen]); 5] = [
             (
                 "GENEL",
                 &[Screen::Home, Screen::Devices, Screen::Acquisition],
@@ -129,6 +129,7 @@ impl DelilXApp {
                     Screen::UsedSpace,
                 ],
             ),
+            ("GÜVENLİK", &[Screen::WriteProtect]),
             ("İNCELEME", &[Screen::Inspect, Screen::Verify]),
             ("RAPORLAMA", &[Screen::Reports, Screen::Settings]),
         ];
@@ -180,6 +181,7 @@ impl DelilXApp {
                 Screen::Logical => screens::logical::draw(ui, &self.state, false),
                 Screen::Selective => screens::logical::draw(ui, &self.state, true),
                 Screen::UsedSpace => screens::usedspace::draw(ui, &self.state),
+                Screen::WriteProtect => screens::writeprotect::draw(ui, &self.state),
                 Screen::Inspect => screens::inspect::draw(ui, &self.state),
                 Screen::Verify => screens::verify::draw(ui, &self.state),
                 Screen::Reports => screens::reports::draw(ui, &self.state),

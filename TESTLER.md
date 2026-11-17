@@ -57,8 +57,9 @@ Her modül, kendi birim testlerini içerir:
 | `report` | JSON/CSV/metin çıktısı, Türkçe içerik |
 | `report_pdf` | Geçerli PDF üretimi, metin sarma |
 | `acquisition` | Silinmiş veri uyarısı, ön kontroller |
+| `writeblock` | Koruma kaynağı sınıflandırması, doğrulama mantığı, uyarı metinleri |
 
-**Toplam: 51 birim testi.**
+**Toplam: 56 birim testi.**
 
 ---
 
@@ -128,21 +129,44 @@ ewfexport -q -u -f raw -t cikarilan cikti.E01
 
 ---
 
-## 6. Test Sonuçları
+## 6. Yazma Koruması Testleri
+
+`tests/writeblock.rs` dosyası, yazılımsal yazma korumasının platformdan
+bağımsız mantığını ve durum sınıflandırmasını doğrular. Gerçek aygıt üzerinde
+destrüktif işlem yapılmaz.
+
+| Test | Doğrulanan |
+|---|---|
+| `yazilimsal_koruma_donanimsal_ile_esdeger_degil_uyarisi` | "Eşdeğer değildir" uyarısı |
+| `sistem_diskini_korumak_guvenli_degil` | Sistem diski uyarısı |
+| `koruma_kaynaklari_dogru_siniflandirilir` | Donanımsal/yazılımsal/yok ayrımı |
+| `rapor_dogrulanmamis_korumayi_etkin_saymaz` | Doğrulanmamış koruma etkin sayılmaz |
+| `rapor_dogrulanmis_korumayi_etkin_sayar` | Doğrulanmış koruma etkin |
+| `korumasiz_cihaz_etkin_sayilmaz` | Korumasız cihaz etkin sayılmaz |
+| `rapor_ozeti_turkce_ve_anlasilir` | Türkçe özet |
+| `windows_disi_platformda_desteklenmiyor_hatasi` | Anlaşılır platform hatası |
+| `koruma_etkinse_kaynak_olarak_kullanilabilir` | Akışa entegrasyon |
+
+**Toplam: 9 yazma koruması testi.**
+
+---
+
+## 7. Test Sonuçları
 
 ```
 $ cargo test --workspace
 
-test result: ok. 51 passed; 0 failed   (delilx-core birim testleri)
+test result: ok. 56 passed; 0 failed   (delilx-core birim testleri)
 test result: ok. 11 passed; 0 failed   (entegrasyon testleri)
 test result: ok.  7 passed; 0 failed   (E01 uyumluluk testleri)
+test result: ok.  9 passed; 0 failed   (yazma koruması testleri)
 ```
 
-**Toplam: 69 test, tamamı başarılı.**
+**Toplam: 83 test, tamamı başarılı.**
 
 ---
 
-## 7. Kalite Kontrolleri
+## 8. Kalite Kontrolleri
 
 Sürekli entegrasyon (GitHub Actions) şunları çalıştırır:
 
@@ -157,7 +181,7 @@ Bütün testler başarılı olmadan yayın oluşturulmaz.
 
 ---
 
-## 8. Test Verisi Üretimi
+## 9. Test Verisi Üretimi
 
 Testler yapay (deterministik veya PRNG ile üretilmiş) veri kullanır:
 
@@ -177,7 +201,7 @@ mcopy -i fat.img /tmp/dosya.txt ::DOSYA.TXT
 
 ---
 
-## 9. Destrüktif Test Politikası
+## 10. Destrüktif Test Politikası
 
 - Testler **yalnızca geçici dizinlerde** ve yapay verilerle çalışır.
 - Gerçek USB belleklere veya SD kartlara test amacıyla bile yazma yapılmaz.
@@ -185,7 +209,7 @@ mcopy -i fat.img /tmp/dosya.txt ::DOSYA.TXT
 
 ---
 
-## 10. Bilinen Sınırlamalar
+## 11. Bilinen Sınırlamalar
 
 Aşağıdaki özellikler bu sürümde sınırlıdır ve **tamamlanmış gibi
 gösterilmemektedir**:
@@ -199,6 +223,11 @@ gösterilmemektedir**:
   haritalama (bitmap) henüz uygulanmamıştır.
 - **Cihaz algılama:** Yalnızca Windows üzerinde tam çalışır. Diğer
   platformlarda cihaz listesi boş döner (test ve geliştirme kolaylığı için).
+- **Yazılımsal yazma koruması:** Windows disk salt-okunur özniteliğine dayanır
+  ve **donanımsal yazma engelleyiciyle eşdeğer değildir.** Yönetici hakları
+  gerektirir; yalnızca Windows üzerinde çalışır. Gerçek aygıt üzerinde bu
+  özelliğin uçtan uca doğrulanması Windows makinede yapılmalıdır; otomatik
+  testler yalnızca platformdan bağımsız mantığı kapsar.
 
 Bu sınırlamalar [DEGISIKLIKLER.md](DEGISIKLIKLER.md) ve
 [README.md](README.md) dosyalarında da belirtilmiştir.

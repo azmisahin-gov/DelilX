@@ -132,6 +132,34 @@ enum Commands {
         #[arg(long)]
         sha512: Option<String>,
     },
+    /// Yazılımsal yazma koruması (write blocker) işlemleri.
+    Koruma {
+        #[command(subcommand)]
+        komut: KorumaKomut,
+    },
+}
+
+/// Yazma koruması alt komutları.
+#[derive(Subcommand)]
+enum KorumaKomut {
+    /// Bir aygıtın yazma koruması durumunu sorgular.
+    Durum {
+        /// Aygıt yolu (ör. \\.\PhysicalDrive2).
+        #[arg(long)]
+        aygit: String,
+    },
+    /// Yazılımsal yazma korumasını etkinleştirir ve doğrular.
+    Etkinlestir {
+        /// Aygıt yolu.
+        #[arg(long)]
+        aygit: String,
+    },
+    /// Yazılımsal yazma korumasını kaldırır.
+    Kaldir {
+        /// Aygıt yolu.
+        #[arg(long)]
+        aygit: String,
+    },
 }
 
 fn progress_callback() -> delilx_core::progress::ProgressCallback {
@@ -356,6 +384,33 @@ fn run() -> anyhow::Result<()> {
                 anyhow::bail!("Doğrulama başarısız!");
             }
         }
+        Commands::Koruma { komut } => match komut {
+            KorumaKomut::Durum { aygit } => {
+                let report = delilx_core::writeblock::query(&aygit)?;
+                println!("{}", report.summary_text());
+                println!(
+                    "{}",
+                    delilx_core::writeblock::SOFTWARE_NOT_EQUIVALENT_WARNING
+                );
+            }
+            KorumaKomut::Etkinlestir { aygit } => {
+                println!("Yazma koruması etkinleştiriliyor: {aygit}");
+                let report = delilx_core::writeblock::enable_and_verify(&aygit)?;
+                println!("{}", report.summary_text());
+                println!(
+                    "{}",
+                    delilx_core::writeblock::SOFTWARE_NOT_EQUIVALENT_WARNING
+                );
+                if !report.is_effective() {
+                    anyhow::bail!("Koruma doğrulanamadı!");
+                }
+            }
+            KorumaKomut::Kaldir { aygit } => {
+                println!("Yazma koruması kaldırılıyor: {aygit}");
+                let report = delilx_core::writeblock::disable_and_verify(&aygit)?;
+                println!("{}", report.summary_text());
+            }
+        },
     }
     Ok(())
 }

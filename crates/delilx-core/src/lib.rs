@@ -31,6 +31,7 @@ pub mod source;
 pub mod timeutil;
 pub mod usedspace;
 pub mod verify;
+pub mod writeblock;
 
 pub use error::{DelilXError, Result};
 pub use hash::{HashAlgorithm, HashSet, HashValue};

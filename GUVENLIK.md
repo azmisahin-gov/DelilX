@@ -45,7 +45,7 @@ DelilX, yazma koruması türlerini **birbirinden ayrı** değerlendirir:
 | Tür | Açıklama |
 |---|---|
 | **Donanımsal yazma engelleyici** | Fiziksel write blocker veya salt okunur anahtar |
-| **Yazılımsal salt okunur** | Yalnızca kilit ile açılmış; donanımsal değil |
+| **Yazılımsal salt okunur (DelilX)** | Windows disk salt-okunur özniteliği; donanımsal değil |
 | **Doğrulanamadı** | Sorgu başarısız |
 | **Yok** | Aygıt yazılabilir |
 
@@ -53,9 +53,32 @@ DelilX, yazma koruması türlerini **birbirinden ayrı** değerlendirir:
 > **eşdeğer gösterilmez.** Adli edinim için donanımsal yazma engelleyici
 > şiddetle önerilir.
 
-Yazma koruması, `IOCTL_DISK_IS_WRITABLE` ile denetlenir. Sorgu
-`ERROR_WRITE_PROTECT` (19) ile başarısız olursa donanımsal koruma olarak
-değerlendirilir.
+Yazma koruması, `IOCTL_DISK_GET_DISK_ATTRIBUTES` (salt-okunur özniteliği) ve
+`IOCTL_DISK_IS_WRITABLE` (yazma engeli) ile denetlenir. Salt-okunur özniteliği
+kapalı olmasına rağmen cihaz yazmaya kapalı bildiriyorsa donanımsal koruma
+olarak değerlendirilir.
+
+### 1.5 Yazılımsal Yazma Koruması (Write Blocker)
+
+DelilX, harici bir donanımsal yazma engelleyici kullanmadan, **yalnızca yazılım
+üzerinden** USB bellek veya SD kartı yazmaya karşı koruyabilir.
+
+- Windows disk salt-okunur özniteliği kullanılır
+  (`IOCTL_DISK_SET_DISK_ATTRIBUTES` + `DISK_ATTRIBUTE_READ_ONLY`).
+- Koruma, `Persist = FALSE` ile ayarlanır: yalnızca çalışma zamanında geçerlidir
+  ve cihaz çıkarılana veya sistem yeniden başlatılana kadar etkindir. Bu, delil
+  cihazının kalıcı olarak değiştirilmemesi için bilinçli bir tercihtir.
+- Koruma **etkinleştirildikten sonra doğrulanır**: salt-okunur özniteliği
+  yeniden okunur ve cihaz yazma erişimiyle açılmaya çalışılır; başarısız olması
+  beklenir.
+- **Koruma sağlanamazsa kullanıcı açıkça bilgilendirilir.**
+- Sistem diski güvenlik nedeniyle korunamaz.
+
+> **Sınırlama:** Bu koruma **yazılımsaldır** ve donanımsal yazma engelleyiciyle
+> **eşdeğer değildir.** Donanımsal engelleyici işletim sisteminden bağımsız
+> çalışır; yazılımsal koruma ise Windows çekirdeği ve sürücü yığınına dayanır.
+> Yönetici hakları gerektirir. Yüksek güvenilirlik gerektiren adli işlemlerde
+> donanımsal yazma engelleyici kullanılmalıdır.
 
 ---
 
